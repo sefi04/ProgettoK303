@@ -105,22 +105,35 @@
     if (isset($_POST['Crea'])) 
     {
         require "./../../conn.php";
+        
+        session_start();
+        $IDDoc=$_SESSION['ID'];
 
         extract($_POST);
 
         $psw=md5($psw);
 
-        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email',$punti,'$data',$classe,'$nome$cognome');";
+        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email','$data',$classe,'$nome$cognome');";
 
-        if ($conn->query($sql) === TRUE) 
+        $ric="SELECT ID FROM alunno WHERE nome='$nome' AND cognome='$cognome' AND cod_classe=$classe";
+
+        $flag=false;
+
+        if ($conn->query($sql)) 
         {
-            echo "New record created successfully";
-        } 
-        else 
-        {
-            echo "<p class='text-white'>Error: " . $sql . "</p><br>" . $conn->error;
+            $flag=true;
         }
 
+
+        $row=($conn->query($ric))->fetch_assoc();
+        $ris=$row['ID'];
+
+        $sql1="INSERT INTO intervento VALUES ('',1,$punti,date('Y-m-d'),'Creazione Alunno','$ris',$IDDoc,'');";
+
+        if ($conn->query($sql1) AND $flag) 
+        {
+            echo("<div class='text-white'>Alunno aggiunto con successo</div>");
+        }
     }
 
 ?>
