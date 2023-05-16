@@ -1,4 +1,4 @@
-<html lang="en" class="bg-dark p-3">
+<html lang="it-IT" class="bg-dark p-3">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">

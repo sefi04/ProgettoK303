@@ -1,6 +1,18 @@
-<?php session_start() ?>
+<?php 
+    session_start();
+    require "./../../conn.php";
 
-<html lang="en" class="bg-dark p-3">
+    $id=$_SESSION['ID'];
+    
+    $table=$conn->query("SELECT * FROM docente WHERE ID=$id");
+
+    $row=$table->fetch_assoc();
+
+    $cognome=$row['cognome'];
+
+?>
+
+<html lang="it-IT" class="bg-dark p-3">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -38,15 +50,14 @@
     </svg>
     </button>
 
-    <div class="title text-white align-self-center"><h1>Salve prof <?php echo $_SESSION['user']; ?></h1></div>
+    <div class="title text-white align-self-center"><h1>Salve prof <?php echo $cognome; ?></h1></div>
     
     <form action="./dettaglioAlunno.php" method="post" class="align-self-center">
         <div class="mb-3 mt-3">
             <label class="form-label text-white" for="class">Classe: </label>
-            <select name="class" id="class" class="form-select" onchange="showAlunno(this.value);">
+            <select name="class" id="class" class="form-select" onchange="showAlunno(this.value);" required>
                 <option value=""></option>
                 <?php
-                    require "./../../conn.php";
 
                     $query='SELECT classe.ID, classe.settore
                     FROM docente,insegna,classe 
@@ -65,19 +76,19 @@
         </div>
         <div class="mb-5 mt-3">
             <label class="form-label text-white" for="alunno">Alunni: </label>
-            <select class="form-select" name="alunno" id="alunno">
+            <select class="form-select" name="alunno" id="alunno" required>
                 <option value="">Classe non selezionata</option>
             </select>
         </div>
 
         <div class="mb-3 mt-3">
-            <button type="submit" class="btn btn-primary" value="Dettaglio alunno">Dettaglio alunno</button>
-            <button type="submit" class="btn btn-primary" value="Assegna Bonus">Assegna Bonus</button>
+            <button type="submit" class="btn btn-primary" value="Dettaglioalunno">Dettaglio alunno</button>
+            <button type="submit" class="btn btn-primary" name="AssegnaBonus" value="AssegnaBonus">Assegna Bonus</button>
         </div>
 
         <div class="input-group mb-3 mt-3">
-            <input type="number" class="form-control" placeholder="Valore" name="valore" id="">
-            <select class="form-select" name="tipo" id="">
+            <input type="number" class="form-control" placeholder="Valore" name="valore" id="valore">
+            <select class="form-select" name="tipo" id="tipo">
                 <option value="">Inserire il tipo di intervento</option>
                 <option value="-1">Malus</option>
                 <option value="1">Bonus</option>
@@ -94,7 +105,7 @@
         <div class="offcanvas-body">
             <button class="btn btn-primary mb-3 mt-6" value="Crea alunno" onclick="location.href = './creaAlunno.php'">Crea alunno</button><br>
             <button class="btn btn-primary mb-3 mt-6" value="Visualizza richieste bonus" onclick="location.href = './visualizzaRichieste.php'">Visualizza richieste bonus</button><br>
-            <button class="btn btn-primary mb-3 mt-6" value="Estrai alunno">Estrai alunno</button><br>
+            <button class="btn btn-primary mb-3 mt-6" value="Estrai alunno" onclick="location.href = './estrazione.php'">Estrai alunno</button><br>
             <button class="btn btn-outline-danger mb-3 mt-6" onclick="location.href = './../../index.php'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
