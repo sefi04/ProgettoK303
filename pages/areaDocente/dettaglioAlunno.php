@@ -48,6 +48,46 @@
     ?>
 
 
+
+    <?php 
+
+        session_start();
+
+        $idDoc=$_SESSION['ID'];
+
+        require "./../../conn.php";
+
+        $idAlunno=$_POST['alunno'];
+
+        $table=$conn->query("SELECT * FROM alunno WHERE ID=$idAlunno");
+
+        $alunno=$table->fetch_assoc();
+        if(isset($_POST['AssegnaBonus']))
+        {
+            $pnt=$_POST['valore']*$_POST['tipo'];
+
+            if ($_POST['tipo']==-1) 
+            {
+                $tipo=0;
+            }
+            else
+            {
+                $tipo=1;
+            }
+
+        
+            if ($conn->query("INSERT INTO intervento VALUES ('',$tipo,$pnt,CURRENT_DATE(),'Assegnato dal docente',$idAlunno,$idDoc,NULL)")===TRUE) 
+            {
+                echo "<h3 class='text-white'>Bonus Assegnato correttamente</h3>";
+            }
+            else 
+            {
+                echo "<p class='text-white'>Errore nell'inserimento: ".$conn->error."</p>";
+            }
+        }
+    ?>
+
+
     <button class="btn btn-primary btn-lg align-self-start" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
@@ -58,6 +98,7 @@
     <div class="container mt-4 d-flex flex-column align-items-center bg-primary rounded w-75 p-4 text-white">
         <h3>Nome: <?php echo $alunno['nome'] ?></h3>
         <h3>Cognome: <?php echo $alunno['cognome'] ?></h3>
+        <h3>Data di Nascita: <?php echo $data=date('d/m/Y', strtotime($alunno['data_nascita'])); ?></h3>
         <h3>Data di Nascita: <?php echo $data=date('d/m/Y', strtotime($alunno['data_nascita'])); ?></h3>
         <h3>e-Mail: <?php echo $alunno['email'] ?></h3>
 
@@ -97,6 +138,8 @@
 
         <h3>Punteggio: <?php echo $pnt ?></h3>
         <h3>Probabilità: <?php echo $prob ?>%</h3>
+        <h3>Punteggio: <?php echo $pnt ?></h3>
+        <h3>Probabilità: <?php echo $prob ?>%</h3>
 
     </div>
 
@@ -113,6 +156,7 @@
         <tbody>
             <?php
 
+                $table=$conn->query("SELECT intervento.data, intervento.descrizione, intervento.punteggio,intervento.tipologia,intervento.cod_richiesta FROM intervento WHERE intervento.cod_alunno=$idAlunno ORDER BY intervento.data DESC;");
                 $table=$conn->query("SELECT intervento.data, intervento.descrizione, intervento.punteggio,intervento.tipologia,intervento.cod_richiesta FROM intervento WHERE intervento.cod_alunno=$idAlunno ORDER BY intervento.data DESC;");
 
                 while($row=$table->fetch_assoc())
