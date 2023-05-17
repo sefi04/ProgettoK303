@@ -7,7 +7,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="bg-dark d-flex flex-column align-items-center p-3">
+<body class="bg-white d-flex flex-column align-items-center p-3">
+
+    <?php
+
+        require "./../../conn.php";
+        session_start();
+        if (isset($_POST['approva'])) 
+        {
+            foreach ($_POST as $key => $value) 
+            {
+                if($value=='on')
+                {
+                    $idDoc=$_SESSION['ID'];
+                    $conn->query("UPDATE richiesta SET cod_docente = $idDoc , rifiutata = 0 WHERE ID=$key");
+                    $table=$conn->query("SELECT descrizione,cod_alunno,valore,cod_destinatario,cod_docente FROM richiesta WHERE ID=$key");
+                    $row=$table->fetch_assoc();
+                    extract($row);
+                    $valore=-$valore;
+                    $conn->query("INSERT INTO intervento VALUES('',1,$valore,CURRENT_DATE(),'$descrizione',$cod_destinatario,$cod_docente,$key)");
+                }
+            }
+        }
+        elseif (isset($_POST['rifiuta'])) 
+        {
+            foreach ($_POST as $key => $value) 
+            {
+                if($value=='on')
+                {
+                    $idDoc=$_SESSION['ID'];
+                    $conn->query("UPDATE richiesta SET cod_docente = $idDoc, rifiutata = 1 WHERE ID=$key");
+                }
+            }
+        }
+
+    ?>
+
+
     <button class="btn btn-primary btn-lg align-self-start" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
@@ -18,6 +54,7 @@
         <table class="table table-dark table-bordered table-striped">
             <thead>
                 <td class="text-white"></td>
+                <td class="text-white">ID Richiesta</td>
                 <td class="text-white">ID Alunno</td>
                 <td class="text-white">Nome alunno</td>
                 <td class="text-white">Motivo bonus</td>
@@ -26,19 +63,17 @@
             </thead>
             <tbody>
                 <?php
-                    require "./../../conn.php";
+                    
 
-                    $table=$conn->query("SELECT destinatario.ID, destinatario.nome, descrizione, valore, alunno.nome AS nomeRich FROM richiesta, alunno , alunno AS destinatario  WHERE richiesta.cod_destinatario=destinatario.ID AND richiesta.cod_alunno=alunno.ID;");
+                    $table=$conn->query("SELECT richiesta.ID AS IDRichiesta, destinatario.ID, destinatario.nome, descrizione, valore, alunno.nome AS nomeRich FROM richiesta, alunno , alunno AS destinatario  WHERE richiesta.cod_destinatario=destinatario.ID AND richiesta.cod_alunno=alunno.ID AND richiesta.cod_docente IS NULL;");
 
                     if ($table->num_rows>0)
                     {
-                        $i=0;
-
                         while($row=$table->fetch_assoc())
                         {
-                            $i++;
+                            $idRich=$row['IDRichiesta'];
                             echo("<tr>");
-                            echo("<td><input class='form-check-input' type='checkbox' id='row$i' name='".$row['ID']."'></td>");
+                            echo("<td><input class='form-check-input' type='checkbox' id='$idRich' name='$idRich'".$row['ID']."'></td>");
                             foreach ($row as $val) 
                             {
                                 echo("<td class='text-white'>$val</td>");
@@ -51,8 +86,8 @@
             </tbody>
         </table>
 
-        <button type="submit" class="btn btn-primary">Approva</button>
-        <button type="submit" class="btn btn-primary">Rifiuta</button>
+        <button type="submit" name='approva' class="btn btn-primary">Approva</button>
+        <button type="submit" name='rifiuta' class="btn btn-primary">Rifiuta</button>
 
     </form>
 
