@@ -35,58 +35,27 @@
                 $tipo=1;
             }
 
-        
-            if ($conn->query("INSERT INTO intervento VALUES ('',$tipo,$pnt,CURRENT_DATE(),'Assegnato dal docente',$idAlunno,$idDoc,NULL)")===TRUE) 
+            $sql="SELECT SUM(punteggio) AS pntAlunno FROM intervento WHERE cod_alunno=$idAlunno";
+            $table=$conn->query($sql);
+            $row=$table->fetch_assoc();
+            if ($row['pntAlunno']+$pnt>0) 
             {
-                echo "<h3 class='text-white'>Bonus Assegnato correttamente</h3>";
-            }
+                if ($conn->query("INSERT INTO intervento VALUES ('',$tipo,$pnt,CURRENT_DATE(),'Assegnato dal docente',$idAlunno,$idDoc,NULL)")===TRUE) 
+                {
+                    echo "<h3 class='text-white'>Bonus Assegnato correttamente</h3>";
+                }
+                else 
+                {
+                    echo "<p class='text-white'>Errore nell'inserimento: ".$conn->error."</p>";
+                }
+            } 
             else 
             {
-                echo "<p class='text-white'>Errore nell'inserimento: ".$conn->error."</p>";
+                echo "<p class='text-white'>Il punteggio e' troppo basso</p>";
             }
+            
         }
     ?>
-
-
-
-    <?php 
-
-        session_start();
-
-        $idDoc=$_SESSION['ID'];
-
-        require "./../../conn.php";
-
-        $idAlunno=$_POST['alunno'];
-
-        $table=$conn->query("SELECT * FROM alunno WHERE ID=$idAlunno");
-
-        $alunno=$table->fetch_assoc();
-        if(isset($_POST['AssegnaBonus']))
-        {
-            $pnt=$_POST['valore']*$_POST['tipo'];
-
-            if ($_POST['tipo']==-1) 
-            {
-                $tipo=0;
-            }
-            else
-            {
-                $tipo=1;
-            }
-
-        
-            if ($conn->query("INSERT INTO intervento VALUES ('',$tipo,$pnt,CURRENT_DATE(),'Assegnato dal docente',$idAlunno,$idDoc,NULL)")===TRUE) 
-            {
-                echo "<h3 class='text-white'>Bonus Assegnato correttamente</h3>";
-            }
-            else 
-            {
-                echo "<p class='text-white'>Errore nell'inserimento: ".$conn->error."</p>";
-            }
-        }
-    ?>
-
 
     <button class="btn btn-primary btn-lg align-self-start" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
@@ -99,7 +68,6 @@
         <h3>Nome: <?php echo $alunno['nome'] ?></h3>
         <h3>Cognome: <?php echo $alunno['cognome'] ?></h3>
         <h3>Data di Nascita: <?php echo $data=date('d/m/Y', strtotime($alunno['data_nascita'])); ?></h3>
-        <h3>Data di Nascita: <?php echo $data=date('d/m/Y', strtotime($alunno['data_nascita'])); ?></h3>
         <h3>e-Mail: <?php echo $alunno['email'] ?></h3>
 
         <?php 
@@ -110,34 +78,33 @@
 
             $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento WHERE cod_alunno=$idAlunno");
             $row=$table->fetch_assoc();
-            if ($row['tot']!=NULL) 
+            if ($row['tot']!=NULL and $row['tot']>0) 
             {
                 $pnt=$row['tot'];
             } 
             else 
             {
-                $pnt=0;
+                $pnt=1;
             }
             
             
-
             $table=$conn->query("SELECT COUNT(alunno.ID) AS tot FROM alunno,classe WHERE cod_classe=(SELECT cod_classe FROM alunno WHERE ID=$idAlunno)");
             $row=$table->fetch_assoc();
+            $totAlunn=$row['tot'];
 
             if ($totpunt!=0) 
             {
-                $prob=round(100.0-($pnt/$totpunt*100), 2);
+                $prob=round(100.0-($pnt/($totpunt)*100), 2);
             }
             else
             {
+                
                 $prob=1/$row['tot']*100;
             }
             
 
         ?>
 
-        <h3>Punteggio: <?php echo $pnt ?></h3>
-        <h3>Probabilità: <?php echo $prob ?>%</h3>
         <h3>Punteggio: <?php echo $pnt ?></h3>
         <h3>Probabilità: <?php echo $prob ?>%</h3>
 
@@ -157,7 +124,6 @@
             <?php
 
                 $table=$conn->query("SELECT intervento.data, intervento.descrizione, intervento.punteggio,intervento.tipologia,intervento.cod_richiesta FROM intervento WHERE intervento.cod_alunno=$idAlunno ORDER BY intervento.data DESC;");
-                $table=$conn->query("SELECT intervento.data, intervento.descrizione, intervento.punteggio,intervento.tipologia,intervento.cod_richiesta FROM intervento WHERE intervento.cod_alunno=$idAlunno ORDER BY intervento.data DESC;");
 
                 while($row=$table->fetch_assoc())
                 {
@@ -169,7 +135,7 @@
                     $punti=$row['punteggio'];
                     $tipo=$row['tipologia'];
 
-                    if ($tipo==1) 
+                    if ($tipo!=1) 
                     {
                         $tipo="Bonus";
                     } 

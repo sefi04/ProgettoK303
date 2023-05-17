@@ -63,25 +63,20 @@
                 {
                     $id=$row['id'];
 
-                    $table=$conn->query('SELECT SUM(punteggio) AS tot FROM intervento '); //TODO: aggiungere la classe
-                    $row=$table->fetch_assoc();
-                    $totpunt=$row['tot'];
-        
-                    $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento WHERE cod_alunno=$id");
+                    $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.ID=$id");
                     $row=$table->fetch_assoc();
                     $pnt=$row['tot'];
-        
-                    $prob=round(100.0-($pnt/$totpunt*100), 2);
-
-
-                    for ($i=0; $i < $prob; $i++) 
+                    
+                    $pnt=$row['tot'];
+                      
+                    for ($i=0; $i < $pnt; $i++) 
                     { 
                         array_push($scatola,$id);
                     }
 
                 }
 
-                $idEstratto=$scatola[rand(0,count($scatola))];
+                $idEstratto=$scatola[rand(0,count($scatola)-1)];
 
                 $table=$conn->query("SELECT * FROM alunno WHERE ID=$idEstratto");
                 $row=$table->fetch_assoc();
@@ -97,41 +92,28 @@
                     <h3>Cognome: $cognome </h3>
                     <h3>Data di Nascita: $data</h3>
                     ";
-                 
-                $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.cod_classe=(SELECT cod_classe FROM alunno WHERE ID=$idEstratto)");
+
+                $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.ID=$idEstratto");
                 $row=$table->fetch_assoc();
-                $totpunt=$row['tot'];
-    
-                $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento WHERE cod_alunno=$idEstratto");
-                $row=$table->fetch_assoc();
-                if ($row['tot']!=NULL) 
+                if ($row['tot']!=NULL and $row['tot']>0) 
                 {
                     $pnt=$row['tot'];
                 } 
                 else 
                 {
-                    $pnt=0;
+                    $pnt=1;
                 }
+                 
                 
                 
-    
-                $table=$conn->query("SELECT COUNT(alunno.ID) AS tot FROM alunno,classe WHERE cod_classe=(SELECT cod_classe FROM alunno WHERE ID=$idEstratto)");
-                $row=$table->fetch_assoc();
-    
-                if ($totpunt!=0) 
-                {
-                    $prob=round(100.0-($pnt/$totpunt*100), 2);
-                }
-                else
-                {
-                    $prob=1/$row['tot']*100;
-                }
+
+                $prob=round($pnt/count($scatola)*100,2);
             
                    
 
                 echo"
                     <h3>Punteggio:  $pnt</h3>
-                    <h3>Probabilità: $prob%</h3>
+                    <h3>Probabilità: $prob %</h3>
                     </div>;";
 
             } 

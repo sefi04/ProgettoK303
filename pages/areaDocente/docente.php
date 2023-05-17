@@ -90,8 +90,8 @@
             <input type="number" class="form-control" placeholder="Valore" name="valore" id="valore">
             <select class="form-select" name="tipo" id="tipo">
                 <option value="">Inserire il tipo di intervento</option>
-                <option value="-1">Malus</option>
-                <option value="1">Bonus</option>
+                <option value="1">Malus</option>
+                <option value="-1">Bonus</option>
             </select>
         </div>
 
