@@ -1,3 +1,16 @@
+<?php
+
+    session_start();
+
+    if (!isset($_SESSION['ID'])) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+    {
+        header('Location: ./../../index.php');
+    }
+
+
+?>
+
+
 <html lang="it-IT">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +40,7 @@
                 <option value=""></option>
                     <?php
 
-                        session_start();
+                        //* Popolazione select calssi
 
                         require "./../../conn.php";
 
@@ -113,7 +126,7 @@
 
         $psw=md5($psw);
 
-        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email','$data',$classe,'$nome$cognome');";
+        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email','$data',$classe,'$nome$cognome');"; //* Inserimento alunno
 
         $ric="SELECT ID FROM alunno WHERE nome='$nome' AND cognome='$cognome' AND cod_classe=$classe";
 
@@ -128,7 +141,7 @@
         $row=$table->fetch_assoc();
         $ris=$row['ID'];
 
-        $sql1="INSERT INTO intervento VALUES ('',1,$punti,CURRENT_DATE(),'Creazione Alunno','$ris',$IDDoc,NULL);";
+        $sql1="INSERT INTO intervento VALUES ('',1,$punti,CURRENT_DATE(),'Creazione Alunno','$ris',$IDDoc,NULL);"; //* Inserimento punteggio iniziale tramite intervento con descrizione creazione alunno
 
         if ($conn->query($sql1) AND $flag) 
         {

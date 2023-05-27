@@ -1,3 +1,13 @@
+<?php
+
+    //*Inizzializzazione della sessione e eliminazione della precedente
+
+    session_start();
+    session_destroy();
+
+?>
+
+
 <html lang="it-IT" class="bg-dark p-3">
 <head>
     <meta charset="UTF-8">
@@ -26,6 +36,9 @@
         </form>
         
             <?php
+
+                //! messaggio in caso di credenziali errate
+
                 if (!empty($_GET['message'])) 
                 {
                     $message=$_GET['message'];
@@ -45,18 +58,20 @@
 </html>
 
 <?php
-    require 'conn.php';
+    require 'conn.php'; //? connessione al Database
     
+    // PostBack eseguito in caso di avvenuto invio della form
+
     if (isset($_POST['accedi'])) 
     {
         extract($_POST);
-        $pass=md5($pass);
+        $pass=md5($pass); //? Cifratura della password
 
         session_start();
 
-        $_SESSION['user']=$user;
+        $_SESSION['user']=$user; //* Salvataggio dell'ID utente nella sessione
 
-        $query="SELECT * FROM docente WHERE username='$user';";
+        $query="SELECT * FROM docente WHERE username='$user';"; //* Controllo presenza username nella tabella docenti
 
         $table=$conn->query($query);
 
@@ -65,24 +80,24 @@
 
             $row=$table->fetch_assoc();
 
-            if($row['password']==$pass)
+            if($row['password']==$pass) //* Controllo password
             {
                 $_SESSION['ID']=$row['ID'];
-                redirect("./pages/areaDocente/docente.php","");
+                redirect("./pages/areaDocente/docente.php",""); //* Reindirizzamento alla home docente
             }
             else
             {
                 echo "password errata";
-                redirect("./index.php","Password errata");
+                redirect("./index.php","Password errata"); //! Reindirizzamento al login con messaggio di password errata
             }
         } 
         else 
         {
-            $query="SELECT * FROM alunno WHERE username='$user';";
+            $query="SELECT * FROM alunno WHERE username='$user';"; //* Controllo presenza username nella tabella alunni
 
             $table=$conn->query($query);
 
-            if ($table->num_rows==0) 
+            if ($table->num_rows==0) //! Reindirizzamento al login con messaggio di untente non trovato
             {
                 echo "User non presente";
                 redirect("./index.php","Username non trovato");
@@ -91,20 +106,21 @@
             {
                 $row=$table->fetch_assoc();
 
-                if($row['password']==$pass)
+                if($row['password']==$pass) //* Controllo password
                 {
-                    redirect("./pages/alunno.php","");
+                    $_SESSION['ID']=$row['ID'];
+                    redirect("./pages/areaAlunno/alunno.php",""); //* Reindirizzamento alla home alunno
                 }
                 else
                 {
-                    redirect("./index.php","Password errata");
+                    redirect("./index.php","Password errata"); //! Reindirizzamento al login con messaggio di password errata
                 }
             }
 
         }
     }
     
-
+    //? Funzione di reindirizzamneto con eventuale messaggio passato con il GET
     function redirect($location,$message)
     {
         header("Location: $location?message=$message");

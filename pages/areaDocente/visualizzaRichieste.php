@@ -1,3 +1,15 @@
+<?php
+
+    session_start();
+
+    if (!isset($_SESSION['ID'])) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+    {
+        header('Location: ./../../index.php');
+    }
+
+
+?>
+
 <html lang="it-IT">
 <head>
     <meta charset="UTF-8">
@@ -7,25 +19,38 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body class="bg-white d-flex flex-column align-items-center p-3">
+<body class="bg-dark d-flex flex-column align-items-center p-3">
 
     <?php
 
         require "./../../conn.php";
-        session_start();
-        if (isset($_POST['approva'])) 
+
+        
+        if (isset($_POST['approva'])) //* Approvazione quando viene premuto il pulsante
         {
-            foreach ($_POST as $key => $value) 
+            foreach ($_POST as $key => $value) //* Approvazione di tutte le check-box attivate
             {
-                if($value=='on')
+                if($value=='on') 
                 {
                     $idDoc=$_SESSION['ID'];
-                    $conn->query("UPDATE richiesta SET cod_docente = $idDoc , rifiutata = 0 WHERE ID=$key");
-                    $table=$conn->query("SELECT descrizione,cod_alunno,valore,cod_destinatario,cod_docente FROM richiesta WHERE ID=$key");
+
+                    $table=$conn->query("SELECT descrizione,cod_alunno,valore,cod_destinatario FROM richiesta WHERE ID=$key");
                     $row=$table->fetch_assoc();
                     extract($row);
-                    $valore=-$valore;
-                    $conn->query("INSERT INTO intervento VALUES('',1,$valore,CURRENT_DATE(),'$descrizione',$cod_destinatario,$cod_docente,$key)");
+
+                    $sql="SELECT SUM(punteggio) AS pntAlunno FROM intervento WHERE cod_alunno=$cod_destinatario";
+                    $table=$conn->query($sql);
+                    $row=$table->fetch_assoc();
+
+                    $flag=0;
+
+                    if ($row['pntAlunno']+$valore>0) //! La richiesta viene approvata solo se il punteggio risulta maggiore di 0 altrimenti rimane in stallo
+                    {
+                        $sql="INSERT INTO intervento VALUES (NULL,1,$valore,CURRENT_DATE(),'$descrizione',$cod_destinatario,$idDoc, $key );";
+                        $conn->query($sql);
+                        $conn->query("UPDATE richiesta SET cod_docente = $idDoc , rifiutata = 0 WHERE ID=$key");
+                        $flag=1;
+                    } 
                 }
             }
         }
@@ -35,8 +60,10 @@
             {
                 if($value=='on')
                 {
+                    $flag=1;
+
                     $idDoc=$_SESSION['ID'];
-                    $conn->query("UPDATE richiesta SET cod_docente = $idDoc, rifiutata = 1 WHERE ID=$key");
+                    $conn->query("UPDATE richiesta SET cod_docente = $idDoc, rifiutata = 1 WHERE ID=$key"); //* Rifiuto della richiesta
                 }
             }
         }
@@ -57,15 +84,18 @@
                 <td class="text-white">ID Richiesta</td>
                 <td class="text-white">ID Alunno</td>
                 <td class="text-white">Nome alunno</td>
+                <td class="text-white">Cognome alunno</td>
                 <td class="text-white">Motivo bonus</td>
                 <td class="text-white">Bonus</td>
-                <td class="text-white">Alunno Richiedente</td>
+                <td class="text-white">Nome richiedente</td>
+                <td class="text-white">Cognome richiedente</td>
             </thead>
             <tbody>
                 <?php
                     
+                    //* Popolamento della tabella con tutte le richieste e le check-box con valore = richiesta.ID
 
-                    $table=$conn->query("SELECT richiesta.ID AS IDRichiesta, destinatario.ID, destinatario.nome, descrizione, valore, alunno.nome AS nomeRich FROM richiesta, alunno , alunno AS destinatario  WHERE richiesta.cod_destinatario=destinatario.ID AND richiesta.cod_alunno=alunno.ID AND richiesta.cod_docente IS NULL;");
+                    $table=$conn->query("SELECT richiesta.ID AS IDRichiesta, destinatario.ID, destinatario.nome, destinatario.cognome, descrizione, valore, alunno.nome AS nomeRich, alunno.cognome AS cognomeRich FROM richiesta, alunno , alunno AS destinatario  WHERE richiesta.cod_destinatario=destinatario.ID AND richiesta.cod_alunno=alunno.ID AND richiesta.cod_docente IS NULL;");
 
                     if ($table->num_rows>0)
                     {
@@ -90,6 +120,22 @@
         <button type="submit" name='rifiuta' class="btn btn-primary">Rifiuta</button>
 
     </form>
+
+    <?php
+
+        if (isset($_POST['approva'])) 
+        {
+            if ($flag==0) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+            {
+
+                echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                        Il punteggio è troppo basso per accettare questo bonus!!!
+                        <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
+                    </div>"; //! Output in caso di richiesta non approvata con successo
+            }
+        }  
+
+    ?>
 
     <div class="offcanvas offcanvas-start" id="demo">
         <div class="offcanvas-header">

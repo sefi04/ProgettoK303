@@ -1,3 +1,16 @@
+<?php
+
+    session_start();
+
+    if (!isset($_SESSION['ID'])) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+    {
+        header('Location: ./../../index.php');
+    }
+
+
+?>
+
+
 <html lang="it-IT">
 <head>
     <meta charset="UTF-8">
@@ -11,20 +24,18 @@
 
     <?php 
 
-        session_start();
-
         $idDoc=$_SESSION['ID'];
 
         require "./../../conn.php";
 
         $idAlunno=$_POST['alunno'];
 
-        $table=$conn->query("SELECT * FROM alunno WHERE ID=$idAlunno");
+        $table=$conn->query("SELECT * FROM alunno WHERE ID=$idAlunno"); //* Seleziono la riga con l'alunno richiesto
 
         $alunno=$table->fetch_assoc();
-        if(isset($_POST['AssegnaBonus']))
+        if(isset($_POST['AssegnaBonus'])) //* Assegnamento del bonus nel caso sia stato premuto il pulsante corrispondente
         {
-            $pnt=$_POST['valore']*$_POST['tipo'];
+            $pnt=$_POST['valore']*$_POST['tipo']; 
 
             if ($_POST['tipo']==-1) 
             {
@@ -38,7 +49,7 @@
             $sql="SELECT SUM(punteggio) AS pntAlunno FROM intervento WHERE cod_alunno=$idAlunno";
             $table=$conn->query($sql);
             $row=$table->fetch_assoc();
-            if ($row['pntAlunno']+$pnt>0) 
+            if ($row['pntAlunno']+$pnt>0) //! Il bonus viene inserito solo se il punteggio non riuslta 0
             {
                 if ($conn->query("INSERT INTO intervento VALUES ('',$tipo,$pnt,CURRENT_DATE(),'Assegnato dal docente',$idAlunno,$idDoc,NULL)")===TRUE) 
                 {
@@ -72,36 +83,10 @@
 
         <?php 
 
-            $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.cod_classe=(SELECT cod_classe FROM alunno WHERE ID=$idAlunno)");
-            $row=$table->fetch_assoc();
-            $totpunt=$row['tot'];
-
-            $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento WHERE cod_alunno=$idAlunno");
-            $row=$table->fetch_assoc();
-            if ($row['tot']!=NULL and $row['tot']>0) 
-            {
-                $pnt=$row['tot'];
-            } 
-            else 
-            {
-                $pnt=1;
-            }
-            
-            
-            $table=$conn->query("SELECT COUNT(alunno.ID) AS tot FROM alunno,classe WHERE cod_classe=(SELECT cod_classe FROM alunno WHERE ID=$idAlunno)");
-            $row=$table->fetch_assoc();
-            $totAlunn=$row['tot'];
-
-            if ($totpunt!=0) 
-            {
-                $prob=round(100.0-($pnt/($totpunt)*100), 2);
-            }
-            else
-            {
-                
-                $prob=1/$row['tot']*100;
-            }
-            
+            require "./../../probabilita.php";
+            $in=calcolaProb($alunno['cod_classe'],$idAlunno); //? Calcolo probabilita' e punteggio con apposita funzione
+            $pnt=$in['pnt'];
+            $prob=$in['prob'];
 
         ?>
 
@@ -122,6 +107,8 @@
         </thead>
         <tbody>
             <?php
+
+                //* Popolamento della tabella interventi
 
                 $table=$conn->query("SELECT intervento.data, intervento.descrizione, intervento.punteggio,intervento.tipologia,intervento.cod_richiesta FROM intervento WHERE intervento.cod_alunno=$idAlunno ORDER BY intervento.data DESC;");
 
@@ -157,8 +144,10 @@
                     echo("<td class='text-white'>$tipo</td>");
                     if (!is_null($row['cod_richiesta'])) 
                     {
-                      
-                        echo("<td class='text-white'>$rich</td>");
+                        $tabella=$conn->query("SELECT nome,cognome from alunno,richiesta where cod_alunno=alunno.ID AND richiesta.ID=$rich");
+                        $riga=$tabella->fetch_assoc();
+                        extract($riga);
+                        echo("<td class='text-white'>$nome $cognome</td>");
                     }
                     else
                     {
@@ -181,6 +170,8 @@
         <tbody>
             <?php
 
+                //* Popolamento della tabella estrazioni
+
                 $table=$conn->query("SELECT ID, data FROM estrazione WHERE cod_alunno=$idAlunno;
                 ");
 
@@ -190,7 +181,7 @@
 
                     $data=date('d/m/Y', strtotime($data));
 
-                    $id=$row['id'];
+                    $id=$row['ID'];
 
                     
                     echo("<tr>");

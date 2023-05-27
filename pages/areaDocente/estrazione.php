@@ -1,3 +1,15 @@
+<?php
+
+    session_start();
+
+    if (!isset($_SESSION['ID'])) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+    {
+        header('Location: ./../../index.php');
+    }
+
+
+?>
+
 <html lang="it-IT">
 <head>
     <meta charset="UTF-8">
@@ -28,6 +40,8 @@
 
                     require "./../../conn.php";
 
+                    //* Popolamento select classi
+
                     $table=$conn->query("SELECT ID, settore FROM classe");
                     while ($row=$table->fetch_assoc()) 
                     {
@@ -52,76 +66,8 @@
 
         if (isset($_POST['estrai']) && $_POST['classe']!='') 
         {
-            $classe=$_POST['classe'];
-            $scatola=array();
-
-            $alunni=$conn->query("SELECT id FROM alunno WHERE cod_classe=$classe");
-
-            if ($alunni->num_rows>0) 
-            {
-                foreach ($alunni as $row) 
-                {
-                    $id=$row['id'];
-
-                    $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.ID=$id");
-                    $row=$table->fetch_assoc();
-                    $pnt=$row['tot'];
-                    
-                    $pnt=$row['tot'];
-                      
-                    for ($i=0; $i < $pnt; $i++) 
-                    { 
-                        array_push($scatola,$id);
-                    }
-
-                }
-
-                $idEstratto=$scatola[rand(0,count($scatola)-1)];
-
-                $table=$conn->query("SELECT * FROM alunno WHERE ID=$idEstratto");
-                $row=$table->fetch_assoc();
-                $nome=$row['nome'];
-                $cognome=$row['cognome'];
-                $data=$row['data_nascita'];
-                
-
-
-                echo "
-                    <div class='container mt-4 d-flex flex-column align-items-center bg-primary rounded w-75 p-4 text-white'>
-                    <h3>Nome: $nome</h3>
-                    <h3>Cognome: $cognome </h3>
-                    <h3>Data di Nascita: $data</h3>
-                    ";
-
-                $table=$conn->query("SELECT SUM(punteggio) AS tot FROM intervento,alunno WHERE intervento.cod_alunno=alunno.ID AND alunno.ID=$idEstratto");
-                $row=$table->fetch_assoc();
-                if ($row['tot']!=NULL and $row['tot']>0) 
-                {
-                    $pnt=$row['tot'];
-                } 
-                else 
-                {
-                    $pnt=1;
-                }
-                 
-                
-                
-
-                $prob=round($pnt/count($scatola)*100,2);
-            
-                   
-
-                echo"
-                    <h3>Punteggio:  $pnt</h3>
-                    <h3>Probabilità: $prob %</h3>
-                    </div>;";
-
-            } 
-            else 
-            {
-                echo "<h3 class='text-white'>Nessun alunno da estrarre</h3>";
-            }
-            
+            require "./../../probabilita.php";
+            calcolaProb($_POST['classe']); //? estrazione tramite apposita funzione
         }
         else
         {

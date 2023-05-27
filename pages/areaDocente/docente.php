@@ -2,6 +2,11 @@
     session_start();
     require "./../../conn.php";
 
+    if (!isset($_SESSION['ID'])) //! in caso di logout e quindi sessione non presente l'utente viene reindirizzato al login
+    {
+        header('Location: ./../../index.php');
+    }
+
     $id=$_SESSION['ID'];
     
     $table=$conn->query("SELECT * FROM docente WHERE ID=$id");
@@ -19,23 +24,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Docente</title>
     <script>
-
+        
         document.getElementById("class").value="";
 
-        function showAlunno(str) {
-        var xhttp;
-        if (str == "") {
-            document.getElementById("alunno").innerHTML = "<option value=''>Classe non selezionata</option>";
-            return;
-        }
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-            document.getElementById("alunno").innerHTML = this.responseText;
+        function showAlunno(str) //* Script ajax
+        { 
+            var xhttp;
+            if (str == "") {
+                document.getElementById("alunno").innerHTML = "<option value=''>Classe non selezionata</option>";
+                return;
             }
-        };
-        xhttp.open("GET", "./ajaxClasseAlunno.php?q="+str, true);
-        xhttp.send();
+            xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("alunno").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("GET", "./ajaxClasseAlunno.php?q="+str, true);
+            xhttp.send();
         } 
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
@@ -58,7 +64,8 @@
             <select name="class" id="class" class="form-select" onchange="showAlunno(this.value);" required>
                 <option value=""></option>
                 <?php
-
+                    
+                    //* Popolamento della select riguardante la classe con le classi in cui il docente insegna
                     $query='SELECT classe.ID, classe.settore
                     FROM docente,insegna,classe 
                     WHERE docente.id=insegna.cod_docente
