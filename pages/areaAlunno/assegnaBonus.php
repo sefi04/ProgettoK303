@@ -69,7 +69,7 @@
 
         <div class="mt-3">
             <label class="form-label text-white" for="dsc">Inserire motivazione bonus:</label>
-            <textarea class="form-control" name="dsc" id="dsc" cols="30" rows="2"></textarea>
+            <textarea class="form-control" style="resize: none;" name="dsc" id="dsc" cols="30" rows="2"></textarea>
         </div>
 
         <button type="submit" name="assegna" class="btn btn-primary mt-3">Richiedi Bonus</button>
