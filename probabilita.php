@@ -71,7 +71,7 @@
                 echo"
                 <h3>Punteggio:  $pnt</h3>
                 <h3>Probabilità: $prob %</h3>
-                </div>;";
+                </div>";
             }
 
             $out['prob']=$prob;

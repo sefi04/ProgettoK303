@@ -52,7 +52,7 @@
         <h3>Probabilità: 
             <?php
                 
-                echo $in['prob'];
+                echo $in['prob']."%";
             ?>
         </h3>
     </div>

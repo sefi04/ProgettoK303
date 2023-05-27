@@ -119,14 +119,17 @@
     {
         require "./../../conn.php";
         
-        session_start();
         $IDDoc=$_SESSION['ID'];
 
         extract($_POST);
 
         $psw=md5($psw);
 
-        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email','$data',$classe,'$nome$cognome');"; //* Inserimento alunno
+        $username=$nome.".".$cognome;
+
+        $username = str_replace(' ', '', $username);
+
+        $sql="INSERT INTO alunno VALUES ('','$nome','$cognome','$psw','$email','$data',$classe,'$username',$IDDoc);"; //* Inserimento alunno
 
         $ric="SELECT ID FROM alunno WHERE nome='$nome' AND cognome='$cognome' AND cod_classe=$classe";
 
